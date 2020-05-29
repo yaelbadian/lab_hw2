@@ -1,20 +1,13 @@
-import pandas as pd
 import numpy as np
-import datetime, time, copy
+import datetime, copy
 import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score, roc_auc_score
 import torch
 import torch.nn.init as init
-from torch import Tensor
-from torch.nn import Conv2d, CrossEntropyLoss, Linear, MaxPool2d, ReLU, Sequential, Softmax
-from torch.optim import Adam
-from torch.optim.optimizer import Optimizer
-from torch.utils.data import DataLoader
-
-from .dataset import MaskDataset
+from torch.nn import Conv2d, CrossEntropyLoss, Linear, MaxPool2d, ReLU, Sequential, Softmax, Module
 
 
-class MaskDetector(nn.Module):
+class MaskDetector(Module):
     """ MaskDetector PyTorch Lightning class
     """
 

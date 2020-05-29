@@ -1,7 +1,7 @@
 import preprocessing
 import model
 import argparse
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
 
 
