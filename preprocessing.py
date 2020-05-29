@@ -16,7 +16,7 @@ def show_images(images, labels):
     grid = torchvision.utils.make_grid(images)
     plt.imshow(grid.numpy().transpose((1, 2, 0)))
     plt.axis('off')
-    plt.title(list(labels.numpy()[0]))
+    plt.title(list(labels.numpy()))
     plt.savefig('fig.jpg', format='jpg')
 
 
