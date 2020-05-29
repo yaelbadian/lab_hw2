@@ -23,6 +23,7 @@ def show_images(images, labels):
 class FaceMaskDataset(Dataset):
 
     def __init__(self, folder_path, transform=None):
+        self.folder_path = folder_path
         self.df = self.create_data_df(folder_path)
         self.transform = transform
 
@@ -34,7 +35,7 @@ class FaceMaskDataset(Dataset):
             raise NotImplementedError('slicing is not supported')
 
         row = self.df.iloc[id]
-        image = cv2.imread(row['id'])
+        image = cv2.imread(join(self.folder_path, row['id']))
         if self.transform is not None:
             image = self.transform(image)
         label = row['label']
