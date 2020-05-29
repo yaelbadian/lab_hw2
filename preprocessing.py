@@ -9,7 +9,7 @@ import cv2
 from torch import long, tensor
 from torch.utils.data.dataset import Dataset
 from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
-import plt
+import matplotlib.pyplot as plt
 
 
 def show_images(images, labels):
