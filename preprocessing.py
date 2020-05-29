@@ -40,7 +40,7 @@ class FaceMaskDataset(Dataset):
         if self.transform is not None:
             image = self.transform(image)
         print('image {} shape:{}'.format(row['id'], image.shape))
-        label = tensor([row['label'], abs(1-row['label'])], dtype=long)
+        label = row['label']
         return image, label
 
     @staticmethod
