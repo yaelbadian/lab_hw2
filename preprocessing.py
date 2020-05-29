@@ -16,7 +16,7 @@ def show_images(images, labels):
     grid = torchvision.utils.make_grid(images)
     plt.imshow(grid.numpy().transpose((1, 2, 0)))
     plt.axis('off')
-    plt.title(labels.numpy())
+    plt.title(', '.join(list(labels.numpy())))
     plt.savefig('fig.jpg', format='jpg')
 
 
@@ -36,6 +36,7 @@ class FaceMaskDataset(Dataset):
 
         row = self.df.iloc[id]
         image = cv2.imread(join(self.folder_path, row['id']))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         if self.transform is not None:
             image = self.transform(image)
         print('image {} shape:{}'.format(row['id'], image.shape))
