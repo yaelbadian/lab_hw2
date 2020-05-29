@@ -119,7 +119,7 @@ def predict(net, test_loader, criterion=None):
             loss = criterion(outputs, labels)
             current_test_losses.append(loss.item())
         _, predicted = torch.max(outputs.data, 1)
-        scores = np.concatenate([scores, outputs[:, 1].numpy()], axis=0)
+        scores = np.concatenate([scores, outputs[:, 1].cpu().numpy()], axis=0)
         y_true = np.concatenate([y_true, labels.cpu().numpy()], axis=0)
         y_pred = np.concatenate([y_true, predicted.cpu().numpy()], axis=0)
 
