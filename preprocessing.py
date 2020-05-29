@@ -50,7 +50,7 @@ class FaceMaskDataset(Dataset):
             if isfile(join(folder_path, file)) and file.endswith('.jpg') and '_' in file:
                 label = file.split('.jpg')[0].split('_')[1]
                 if label.isnumeric():
-                    label = int(label)
+                    label = tensor([int(label), abs(1-int(label))])
                 df.append({'id': file, 'label': label})
         return pd.DataFrame(df)
 
