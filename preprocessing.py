@@ -37,7 +37,7 @@ class FaceMaskDataset(Dataset):
         image = cv2.imread(row['id'])
         if self.transform is not None:
             image = self.transform(image)
-        label = tensor([row['label']], dtype=long)
+        label = row['label']
         return image, label
 
     @staticmethod
