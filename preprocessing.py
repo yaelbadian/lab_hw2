@@ -33,7 +33,7 @@ class FaceMaskDataset(Dataset):
         if isinstance(id, slice):
             raise NotImplementedError('slicing is not supported')
 
-        row = self.dataFrame.iloc[id]
+        row = self.df.iloc[id]
         image = cv2.imread(row['image'])
         if self.transform is not None:
             image = self.transform(image)
