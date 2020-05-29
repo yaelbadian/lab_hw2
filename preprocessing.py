@@ -38,7 +38,7 @@ class FaceMaskDataset(Dataset):
         image = cv2.imread(join(self.folder_path, row['id']))
         if self.transform is not None:
             image = self.transform(image)
-        label = row['label']
+        label =  tensor([row['label']], dtype=long),
         return image, label
 
     @staticmethod
@@ -47,6 +47,8 @@ class FaceMaskDataset(Dataset):
         for file in listdir(folder_path):
             if isfile(join(folder_path, file)) and file.endswith('.jpg') and '_' in file:
                 label = file.split('.jpg')[0].split('_')[1]
+                if label.isnumeric():
+                    label = int(label)
                 df.append({'id': file, 'label': label})
         return pd.DataFrame(df)
 
