@@ -34,7 +34,7 @@ class FaceMaskDataset(Dataset):
             raise NotImplementedError('slicing is not supported')
 
         row = self.df.iloc[id]
-        image = cv2.imread(row['image'])
+        image = cv2.imread(row['id'])
         if self.transform is not None:
             image = self.transform(image)
         label = tensor([row['label']], dtype=long)
