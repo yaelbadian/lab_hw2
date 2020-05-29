@@ -13,7 +13,7 @@ if __name__ == '__main__':
     folder_path = args.input_folder
 
     transformations = Compose([
-        ToPILImage(),
+        ToPILImage('RGB'),
         Resize((100, 100)),
         ToTensor(),  # [0, 1]
     ])
