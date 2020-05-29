@@ -14,10 +14,10 @@ import matplotlib.pyplot as plt
 
 def show_images(images, labels):
     grid = torchvision.utils.make_grid(images)
-    plt.imshow(grid.numpy().transpose((1, 3, 0)))
+    plt.imshow(grid.numpy().transpose((1, 2, 0)))
     plt.axis('off')
     plt.title(labels.numpy())
-    plt.savefig('fig.png', format='png')
+    plt.savefig('fig.jpg', format='jpg')
 
 
 class FaceMaskDataset(Dataset):
