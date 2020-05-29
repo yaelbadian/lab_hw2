@@ -40,7 +40,7 @@ class FaceMaskDataset(Dataset):
         if self.transform is not None:
             image = self.transform(image)
         print('image {} shape:{}'.format(row['id'], image.shape))
-        label = tensor([row['label']], dtype=long)
+        label = tensor([row['label'], abs(1-row['label'])], dtype=long)
         return image, label
 
     @staticmethod
@@ -50,7 +50,7 @@ class FaceMaskDataset(Dataset):
             if isfile(join(folder_path, file)) and file.endswith('.jpg') and '_' in file:
                 label = file.split('.jpg')[0].split('_')[1]
                 if label.isnumeric():
-                    label = tensor([int(label), abs(1-int(label))])
+                    label = int(label)
                 df.append({'id': file, 'label': label})
         return pd.DataFrame(df)
 
