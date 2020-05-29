@@ -11,6 +11,7 @@ if __name__ == '__main__':
     folder_path = args.input_folder
 
     dataset = preprocessing.FaceMaskDataset(folder_path)
+    print(dataset.df)
     data_loader = DataLoader(dataset, batch_size=8, shuffle=True)
     train_iter = iter(data_loader)
     images, labels = train_iter.next()
