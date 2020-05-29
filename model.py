@@ -58,8 +58,9 @@ class MaskDetector(Module):
 
     def configure_weighted_loss(self):
         balanced = self.train_df['label'].mean()
-        weights = [1-balanced, balanced]
-        return CrossEntropyLoss(weight=torch.tensor(weights))
+        weights = torch.tensor([1-balanced, balanced])
+        weights = to_gpu(weights)
+        return CrossEntropyLoss(weights=weights)
 
     def configure_optimizer(self, opt_str):
         if opt_str == 'Adam':
