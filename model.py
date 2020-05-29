@@ -121,8 +121,7 @@ def predict(net, test_loader, criterion=None):
         _, predicted = torch.max(outputs.data, 1)
         scores = np.concatenate([scores, outputs[:, 1].detach().cpu().numpy()], axis=0)
         y_true = np.concatenate([y_true, labels.detach().cpu().numpy()], axis=0)
-        y_pred = np.concatenate([y_true, predicted.detach().cpu().numpy()], axis=0)
-
+        y_pred = np.concatenate([y_pred, predicted.detach().cpu().numpy()], axis=0)
     f1 = f1_score(y_true, y_pred)
     roc_auc = roc_auc_score(y_true, scores)
     net.train()
