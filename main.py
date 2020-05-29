@@ -22,4 +22,4 @@ if __name__ == '__main__':
     data_loader = DataLoader(dataset, batch_size=8, shuffle=True)
     train_iter = iter(data_loader)
     images, labels = train_iter.next()
-    dataset.show_images(images, labels)
+    preprocessing.show_images(images, labels)
