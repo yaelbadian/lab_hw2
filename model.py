@@ -38,10 +38,10 @@ class MaskDetector(Module):
 
         self.linearLayers = linearLayers = Sequential(
             Linear(in_features=2048, out_features=1024),
-            Dropout(p=0.25),
+            Dropout(p=0.1),
             ReLU(),
             Linear(in_features=1024, out_features=2),
-            Dropout(p=0.25),
+            Dropout(p=0.1),
             Softmax(dim=1)
         )
 
