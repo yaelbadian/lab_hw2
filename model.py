@@ -17,21 +17,21 @@ class MaskDetector(Module):
 
         self.convLayer1 = convLayer1 = Sequential(
             Conv2d(3, 32, kernel_size=(3, 3), padding=(1, 1)),
-            BatchNorm2d(32),
+            # BatchNorm2d(32),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
 
         self.convLayer2 = convLayer2 = Sequential(
             Conv2d(32, 64, kernel_size=(3, 3), padding=(1, 1)),
-            BatchNorm2d(64),
+            # BatchNorm2d(64),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
 
         self.convLayer3 = convLayer3 = Sequential(
             Conv2d(64, 128, kernel_size=(3, 3), padding=(1, 1), stride=(3, 3)),
-            BatchNorm2d(128),
+            # BatchNorm2d(128),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
