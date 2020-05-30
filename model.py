@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import datetime, copy
 import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score, roc_auc_score
@@ -8,9 +9,6 @@ from torch.nn import Conv2d, CrossEntropyLoss, Linear, MaxPool2d, ReLU, Sequenti
 
 
 class MaskDetector(Module):
-    """ MaskDetector PyTorch Lightning class
-    """
-
     def __init__(self, train_df):
         super(MaskDetector, self).__init__()
         self.train_df = train_df
@@ -46,14 +44,12 @@ class MaskDetector(Module):
         )
 
         # Initialize layers' weights
-        for sequential in [convLayer1, convLayer2, convLayer3, linearLayers]:
+        for sequential in [self.convLayer1, self.convLayer2, self.convLayer3, self.linearLayers]:
             for layer in sequential.children():
                 if isinstance(layer, (Linear, Conv2d)):
                     init.xavier_uniform_(layer.weight)
 
     def forward(self, x):
-        """ forward pass
-        """
         out = self.convLayer1(x)
         out = self.convLayer2(out)
         out = self.convLayer3(out)
@@ -82,11 +78,12 @@ class MaskDetector(Module):
 
     def visualize_conv2d_features(self, conv_name, file_name):
         conv = getattr(self, conv_name)
-        kernels = conv[0].weight.detach()
+        kernels = conv[0].weight.detach().cpu()
         fig, axarr = plt.subplots(kernels.size(0))
         for idx in range(kernels.size(0)):
-            axarr[idx].imshow(kernels[idx].squeeze())
-        plt.savefig(file_name + '.jpg', format='jpg')
+            axarr[idx].imshow(kernels[idx].squeeze() / kernels[idx])
+        plt.savefig('plots/' + file_name + '.jpg', format='jpg')
+        plt.close()
 
 
 def to_gpu(x):
@@ -113,18 +110,20 @@ def plot_loss_and_error(train_f1s, train_roc_aucs, train_losses, test_f1s, test_
     error_fig.plot(list(range(len(train_roc_aucs))), train_roc_aucs, label='Train Roc Auc', color='turquoise', lw=2)
     error_fig.plot(list(range(len(test_roc_aucs))), test_roc_aucs, label='Test Roc Auc', color='orchid', lw=2)
     plt.xlabel('Epoch')
-    plt.ylabel('Roc Auc')
+    plt.ylabel('ROC AUC')
     plt.legend()
-    plt.title('Roc Auc as function of Epochs')
+    plt.title('ROC AUC as function of Epochs')
     plt.tight_layout()
-    fig.savefig(f'loss_plot_{model_name}.png')
+    fig.savefig(f'plots/loss_plot_{model_name}.png')
+    plt.close()
+
 
 
 def predict(net, test_loader, criterion=None):
     current_test_losses = []
     net.eval()
-    y_true, y_pred, scores = np.array([]), np.array([]), np.array([])
-    for images, labels in test_loader:
+    y_true, y_pred, y_scores, y_ids = np.array([]), np.array([]), np.array([]), np.array([])
+    for images, labels, image_ids in test_loader:
         images = to_gpu(images)
         labels = to_gpu(labels)
         outputs = net(images)
@@ -132,19 +131,24 @@ def predict(net, test_loader, criterion=None):
             loss = criterion(outputs, labels)
             current_test_losses.append(loss.item())
         _, predicted = torch.max(outputs.data, 1)
-        scores = np.concatenate([scores, outputs[:, 1].detach().cpu().numpy()], axis=0)
+        y_ids = np.concatenate([y_ids, np.array(image_ids)], axis=0)
+        y_scores = np.concatenate([y_scores, outputs[:, 1].detach().cpu().numpy()], axis=0)
         y_true = np.concatenate([y_true, labels.detach().cpu().numpy()], axis=0)
         y_pred = np.concatenate([y_pred, predicted.detach().cpu().numpy()], axis=0)
-    print("1:", y_pred[y_true == 1].mean())
-    print("0:", y_pred[y_true == 0].mean())
-    f1 = f1_score(y_true, y_pred)
-    roc_auc = roc_auc_score(y_true, scores)
+    df = pd.DataFrame(zip(y_ids, y_scores, y_pred, y_true), columns=['id', 'score', 'pred', 'true'])
+    df = df.astype({'pred':'int', 'true':'int'})
     net.train()
     if criterion is not None:
         test_loss = sum(current_test_losses) / len(current_test_losses)
-        return f1, roc_auc, test_loss
+        return df, test_loss
     else:
-        return f1, roc_auc
+        return df
+
+
+def calculate_scores(df):
+    f1 = f1_score(df['true'], df['pred'])
+    roc_auc = roc_auc_score(df['true'], df['score'])
+    return f1, roc_auc
 
 
 def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True, save=True):
@@ -160,7 +164,7 @@ def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True
     for epoch in range(num_epochs):
         # train
         current_train_losses = []
-        for i, (images, labels) in enumerate(train_loader):
+        for i, (images, labels, _) in enumerate(train_loader):
             images = to_gpu(images)
             labels = to_gpu(labels)
             optimizer.zero_grad()
@@ -173,27 +177,27 @@ def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True
             # train error & loss
             train_loss = sum(current_train_losses) / len(current_train_losses)
             train_losses.append(train_loss)
-            train_f1, train_roc_auc = predict(net, train_loader)
+            df = predict(net, train_loader)
+            train_f1, train_roc_auc = calculate_scores(df)
             train_f1s.append(train_f1)
             train_roc_aucs.append(train_roc_auc)
             # test error & loss
-            test_f1, test_roc_auc, test_loss = predict(net, test_loader, criterion)
+            df, test_loss = predict(net, test_loader, criterion)
+            test_f1, test_roc_auc = calculate_scores(df)
             test_f1s.append(test_f1)
             test_roc_aucs.append(test_roc_auc)
             test_losses.append(test_loss)
-            print(
-                f'Epoch [{epoch + 1}/{num_epochs}], Train_F1:{train_f1:.2f}, Train_Roc_Auc:{train_roc_auc:.2f}, '
-                f'Train_Loss {train_loss:.2f}, Test_F1:{test_f1:.2f}, Test_Roc_Auc:{test_roc_auc:.2f}, Test_Loss {test_loss:.2f}')
+            print(f'Epoch [{epoch + 1}/{num_epochs}] - Train: F1 {train_f1:.2f}| ROC_AUC {train_roc_auc:.2f}| '
+                  f'Loss {train_loss:.2f} \t Test: F1:{test_f1:.2f}, ROC_AUC {test_roc_auc:.2f} | Loss {test_loss:.2f}')
             # updating the best model so far
-            if test_f1 > best_test_f1:  # and test_acc > 0.857:
-                best_model_wts = copy.deepcopy(net.state_dict())
+            if test_f1 > best_test_f1:
                 best_epoch = epoch
                 best_test_f1 = test_f1
-                model_name = f'cnn_model_{datetime_str}_{best_epoch}_{best_test_f1:.2f}'
-                torch.save(net.state_dict(), model_name + '.pkl')
-                print(f"Current Best Epoch: [{epoch}/{num_epochs}]\t Test F1: [{best_test_f1:.2f}]")
+                model_name = f'model_{datetime_str}_{best_epoch}_{best_test_f1:.2f}'
+                torch.save(net.state_dict(), 'models/' + model_name + '.pkl')
+                print(f"Current Best Epoch: [{epoch}/{num_epochs}]\t Test F1: {best_test_f1:.2f}")
                 plot_loss_and_error(train_f1s, train_roc_aucs, train_losses, test_f1s, test_roc_aucs, test_losses, model_name)
     # plotting
     if plot:
         plot_loss_and_error(train_f1s, train_roc_aucs, train_losses, test_f1s, test_roc_aucs, test_losses, 'last_plot')
-    return net, best_test_f1
+    return net
