@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     train_dataset = preprocessing.FaceMaskDataset(train_path, transformations)
     test_dataset = preprocessing.FaceMaskDataset(test_path, transformations)
-    model_pipeline(train_dataset, test_dataset, 32, 50, 'Adam')
+    model_pipeline(train_dataset, test_dataset, 32, 100, 'Adam')
 
 
     # train_iter = iter(data_loader)
