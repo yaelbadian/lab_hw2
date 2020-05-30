@@ -128,7 +128,7 @@ def predict(net, test_loader, criterion=None):
     roc_auc = roc_auc_score(y_true, scores)
     net.train()
     if criterion is not None:
-        test_loss = sum(current_test_losses)
+        test_loss = sum(current_test_losses) / len(current_test_losses)
         return f1, roc_auc, test_loss
     else:
         return f1, roc_auc
@@ -158,7 +158,7 @@ def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True
             optimizer.step()
         if plot or save:
             # train error & loss
-            train_loss = sum(current_train_losses)
+            train_loss = sum(current_train_losses) / len(current_train_losses)
             train_losses.append(train_loss)
             train_f1, train_roc_auc = predict(net, train_loader)
             train_f1s.append(train_f1)
@@ -169,16 +169,16 @@ def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True
             test_roc_aucs.append(test_roc_auc)
             test_losses.append(test_loss)
             print(
-                f'Epoch [{epoch + 1}/{num_epochs}], Train_F1:{train_f1}, Train_Roc_Auc:{train_roc_auc}, '
-                f'Train_Loss {train_loss}, Test_F1:{test_f1}, Test_Roc_Auc:{test_roc_auc}, Test_Loss {test_loss}')
+                f'Epoch [{epoch + 1}/{num_epochs}], Train_F1:{train_f1:.2f}, Train_Roc_Auc:{train_roc_auc:.2f}, '
+                f'Train_Loss {train_loss:.2f}, Test_F1:{test_f1:.2f}, Test_Roc_Auc:{test_roc_auc:.2f}, Test_Loss {test_loss:.2f}')
             # updating the best model so far
             if test_f1 > best_test_f1:  # and test_acc > 0.857:
                 best_model_wts = copy.deepcopy(net.state_dict())
                 best_epoch = epoch
                 best_test_f1 = test_f1
-                model_name = f'cnn_model_{datetime_str}_{best_epoch}_{best_test_f1}'
+                model_name = f'cnn_model_{datetime_str}_{best_epoch}_{best_test_f1:.2f}'
                 torch.save(net.state_dict(), model_name + '.pkl')
-                print(f"Current Best Epoch: [{epoch}/{num_epochs}]\t Test F1: [{best_test_f1}]")
+                print(f"Current Best Epoch: [{epoch}/{num_epochs}]\t Test F1: [{best_test_f1:.2f}]")
                 plot_loss_and_error(train_f1s, train_roc_aucs, train_losses, test_f1s, test_roc_aucs, test_losses, model_name)
     # plotting
     if plot:
