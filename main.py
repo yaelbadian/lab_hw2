@@ -47,6 +47,8 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
     predictions = model.predict(model_net, test_loader)
     f1, roc_auc = model.calculate_scores(predictions)
-    print('F1 score:', f1, 'ROC AUC score:', roc_auc)
-    mistakes = predictions[predictions['pred'] != predictions['true']]['id'].values[:10]
+    fn = 1 - predictions[predictions['true'] == 0]['pred'].mean()
+    tp = predictions[predictions['true'] == 1]['pred'].mean()
+    print('F1 score:', f1, 'ROC AUC score:', roc_auc, 'FN:', fn, 'TP:', tp)
+    mistakes = predictions[predictions['pred'] != predictions['true']]['id'].values[:16]
     preprocessing.show_images(test_dataset, mistakes, 'mistakes')
