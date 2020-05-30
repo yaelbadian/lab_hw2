@@ -2,7 +2,7 @@ import preprocessing
 import model
 import argparse
 from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
+from torchvision.transforms import RandomCrop, ColorJitter, RandomHorizontalFlip
 from pytorch_model_summary import summary
 import torch
 
@@ -25,14 +25,12 @@ if __name__ == '__main__':
     train_path = args.input_folder
     test_path = args.output_folder
 
-    transformations = Compose([
-        ToPILImage('RGB'),
-        Resize((100, 100)),
-        ToTensor(),  # [0, 1]
-    ])
+    transformations = [RandomCrop(90, pad_if_needed=True, padding_mode='edge'),
+                       ColorJitter(0.125, 0.125, 0.125, 0.1),
+                       RandomHorizontalFlip()]
 
     train_dataset = preprocessing.FaceMaskDataset(train_path, transformations)
-    test_dataset = preprocessing.FaceMaskDataset(test_path, transformations)
+    test_dataset = preprocessing.FaceMaskDataset(test_path, [])
     model_pipeline(train_dataset, test_dataset, 32, 100, 'Adam')
 
 

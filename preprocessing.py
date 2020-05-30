@@ -23,9 +23,14 @@ def show_images(images, labels):
 class FaceMaskDataset(Dataset):
 
     def __init__(self, folder_path, transform=None):
+        transormations = [
+            ToPILImage('RGB'),
+            Resize((100, 100)),
+            ToTensor(),  # [0, 1]
+        ]
         self.folder_path = folder_path
         self.df = self.create_data_df(folder_path)
-        self.transform = transform
+        self.transform = Compose(transormations[:-1] + transform + [transormations[-1]])
 
     def __len__(self):
         return self.df.shape[0]
@@ -37,8 +42,7 @@ class FaceMaskDataset(Dataset):
         row = self.df.iloc[id]
         image = cv2.imread(join(self.folder_path, row['id']))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        if self.transform is not None:
-            image = self.transform(image)
+        image = self.transform(image)
         label = row['label']
         return image, label
 
