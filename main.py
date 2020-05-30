@@ -13,7 +13,11 @@ def model_pipeline(train_dataset, test_dataset, batch_size, num_epochs, optimize
     net = model.MaskDetector(train_dataset.df)
     print(summary(net, torch.zeros((1, 3, 100, 100)), show_input=False, show_hierarchical=True))
 
-    return model.fit(net, train_loader, test_loader, num_epochs, optimizer, plot=True, save=True)
+    model_net, best_test_f1 = model.fit(net, train_loader, test_loader, num_epochs, optimizer, plot=True, save=True)
+    net.visualize_conv2d_features('convLayer1', 'convLayer1')
+    net.visualize_conv2d_features('convLayer2', 'convLayer2')
+    net.visualize_conv2d_features('convLayer3', 'convLayer3')
+    return model_net, best_test_f1
 
 
 if __name__ == '__main__':

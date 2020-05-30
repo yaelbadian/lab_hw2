@@ -15,28 +15,28 @@ class MaskDetector(Module):
         super(MaskDetector, self).__init__()
         self.train_df = train_df
 
-        self.convLayer1 = convLayer1 = Sequential(
+        self.convLayer1 = Sequential(
             Conv2d(3, 32, kernel_size=(3, 3), padding=(1, 1)),
             # BatchNorm2d(32),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
 
-        self.convLayer2 = convLayer2 = Sequential(
+        self.convLayer2 = Sequential(
             Conv2d(32, 64, kernel_size=(3, 3), padding=(1, 1)),
             # BatchNorm2d(64),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
 
-        self.convLayer3 = convLayer3 = Sequential(
+        self.convLayer3 = Sequential(
             Conv2d(64, 128, kernel_size=(3, 3), padding=(1, 1), stride=(3, 3)),
             # BatchNorm2d(128),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
 
-        self.linearLayers = linearLayers = Sequential(
+        self.linearLayers = Sequential(
             Linear(in_features=2048, out_features=1024),
             Dropout(p=0.1),
             ReLU(),
@@ -79,6 +79,14 @@ class MaskDetector(Module):
         else:
             opt = torch.optim.Adam(self.parameters())
         return opt
+
+    def visualize_conv2d_features(self, conv_name, file_name):
+        conv = getattr(self, conv_name)
+        kernels = conv[0].weight.detach()
+        fig, axarr = plt.subplots(kernels.size(0))
+        for idx in range(kernels.size(0)):
+            axarr[idx].imshow(kernels[idx].squeeze())
+        plt.savefig(file_name + '.jpg', format='jpg')
 
 
 def to_gpu(x):
