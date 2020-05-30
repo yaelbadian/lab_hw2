@@ -4,6 +4,7 @@ import datetime, copy
 import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score, roc_auc_score
 import torch
+import torchvision
 import torch.nn.init as init
 from torch.nn import Conv2d, CrossEntropyLoss, Linear, MaxPool2d, ReLU, Sequential, Softmax, Module, BatchNorm2d, Dropout
 
@@ -78,10 +79,13 @@ class MaskDetector(Module):
 
     def visualize_conv2d_features(self, conv_name, file_name):
         conv = getattr(self, conv_name)
-        kernels = conv[0].weight.detach().cpu()
-        fig, axarr = plt.subplots(kernels.size(0))
-        for idx in range(kernels.size(0)):
-            axarr[idx].imshow(kernels[idx].squeeze() / kernels[idx])
+        tensor = conv[0].weight.data.detach().cpu()
+        n, c, w, h = tensor.shape
+        tensor = tensor.view(n * c, -1, w, h)
+        rows = np.min((tensor.shape[0] // 8 + 1, 64))
+        grid = torchvision.utils.make_grid(tensor, nrow=8, normalize=True, padding=1)
+        plt.figure(figsize=(8, rows))
+        plt.imshow(grid.numpy().transpose((1, 2, 0)))
         plt.savefig('plots/' + file_name + '.jpg', format='jpg')
         plt.close()
 

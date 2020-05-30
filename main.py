@@ -13,7 +13,6 @@ def model_pipeline(train_dataset, test_dataset, batch_size, num_epochs, optimize
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
     net = model.MaskDetector(train_dataset.df)
     print(summary(net, torch.zeros((1, 3, 100, 100)), show_input=False, show_hierarchical=True))
-
     model_net = model.fit(net, train_loader, test_loader, num_epochs, optimizer, plot=True, save=True)
     net.visualize_conv2d_features('convLayer1', 'convLayer1')
     net.visualize_conv2d_features('convLayer2', 'convLayer2')
