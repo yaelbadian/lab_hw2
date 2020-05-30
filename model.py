@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score, roc_auc_score
 import torch
 import torch.nn.init as init
-from torch.nn import Conv2d, CrossEntropyLoss, Linear, MaxPool2d, ReLU, Sequential, Softmax, Module
+from torch.nn import Conv2d, CrossEntropyLoss, Linear, MaxPool2d, ReLU, Sequential, Softmax, Module, BatchNorm2d, Dropout
 
 
 class MaskDetector(Module):
@@ -17,26 +17,31 @@ class MaskDetector(Module):
 
         self.convLayer1 = convLayer1 = Sequential(
             Conv2d(3, 32, kernel_size=(3, 3), padding=(1, 1)),
+            BatchNorm2d(32),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
 
         self.convLayer2 = convLayer2 = Sequential(
             Conv2d(32, 64, kernel_size=(3, 3), padding=(1, 1)),
+            BatchNorm2d(64),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
 
         self.convLayer3 = convLayer3 = Sequential(
             Conv2d(64, 128, kernel_size=(3, 3), padding=(1, 1), stride=(3, 3)),
+            BatchNorm2d(128),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
 
         self.linearLayers = linearLayers = Sequential(
             Linear(in_features=2048, out_features=1024),
+            Dropout(p=0.25),
             ReLU(),
             Linear(in_features=1024, out_features=2),
+            Dropout(p=0.25),
             Softmax(dim=1)
         )
 

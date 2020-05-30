@@ -3,12 +3,16 @@ import model
 import argparse
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
+from pytorch_model_summary import summary
+import torch
 
 
 def model_pipeline(train_dataset, test_dataset, batch_size, num_epochs, optimizer, dropout=None):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
     net = model.MaskDetector(train_dataset.df)
+    print(summary(net, torch.zeros((1, 3, 100, 100)), show_input=False, show_hierarchical=True))
+
     return model.fit(net, train_loader, test_loader, num_epochs, optimizer, plot=True, save=True)
 
 
