@@ -39,7 +39,6 @@ class FaceMaskDataset(Dataset):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         if self.transform is not None:
             image = self.transform(image)
-        print('image {} shape:{}'.format(row['id'], image.shape))
         label = row['label']
         return image, label
 

@@ -103,8 +103,8 @@ def plot_loss_and_error(train_f1s, train_roc_aucs, train_losses, test_f1s, test_
     plt.ylabel('Roc Auc')
     plt.legend()
     plt.title('Roc Auc as function of Epochs')
+    plt.tight_layout()
     fig.savefig(f'loss_plot_{model_name}.png')
-    plt.show()
 
 
 def predict(net, test_loader, criterion=None):
@@ -122,6 +122,8 @@ def predict(net, test_loader, criterion=None):
         scores = np.concatenate([scores, outputs[:, 1].detach().cpu().numpy()], axis=0)
         y_true = np.concatenate([y_true, labels.detach().cpu().numpy()], axis=0)
         y_pred = np.concatenate([y_pred, predicted.detach().cpu().numpy()], axis=0)
+    print("1:", y_pred[y_true == 1].mean())
+    print("0:", y_pred[y_true == 0].mean())
     f1 = f1_score(y_true, y_pred)
     roc_auc = roc_auc_score(y_true, scores)
     net.train()
