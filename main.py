@@ -43,7 +43,7 @@ if __name__ == '__main__':
     test_dataset = preprocessing.FaceMaskDataset(test_path, [])
 
     # train the model
-    model_net = model_pipeline(train_dataset, test_dataset, 256, 2, 'Adam')
+    model_net = model_pipeline(train_dataset, test_dataset, 256, 100, 'Adam')
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
     predictions = model.predict(model_net, test_loader)
     f1, roc_auc = model.calculate_scores(predictions)
