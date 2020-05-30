@@ -46,7 +46,7 @@ class MaskDetector(Module):
         )
 
         # Initialize layers' weights
-        for sequential in [convLayer1, convLayer2, convLayer3, linearLayers]:
+        for sequential in [self.convLayer1, self.convLayer2, self.convLayer3, self.linearLayers]:
             for layer in sequential.children():
                 if isinstance(layer, (Linear, Conv2d)):
                     init.xavier_uniform_(layer.weight)
