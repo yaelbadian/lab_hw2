@@ -173,10 +173,10 @@ def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True
             if test_f1 > best_test_f1:  # and test_acc > 0.857:
                 best_model_wts = copy.deepcopy(net.state_dict())
                 best_epoch = epoch
-                best_test_acc = test_f1
+                best_test_f1 = test_f1
                 model_name = f'cnn_model_{datetime_str}_{best_epoch}_{best_test_f1}'
                 torch.save(net.state_dict(), model_name + '.pkl')
-                print(f"Current Best Epoch: [{epoch}/{num_epochs}]\t Test Acc: [{best_test_acc}]")
+                print(f"Current Best Epoch: [{epoch}/{num_epochs}]\t Test F1: [{best_test_f1}]")
                 plot_loss_and_error(train_f1s, train_roc_aucs, train_losses, test_f1s, test_roc_aucs, test_losses, model_name)
     # plotting
     if plot:
