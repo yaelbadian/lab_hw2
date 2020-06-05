@@ -15,34 +15,59 @@ class MaskDetector(Module):
             Conv2d(3, 32, kernel_size=(3, 3), padding=(1, 1)),
             # BatchNorm2d(32),
             ReLU(),
-            MaxPool2d(kernel_size=(2, 2))
+            # MaxPool2d(kernel_size=(2, 2))
         )
 
         self.convLayer2 = Sequential(
             Conv2d(32, 64, kernel_size=(3, 3), padding=(1, 1)),
             # BatchNorm2d(64),
             ReLU(),
-            MaxPool2d(kernel_size=(2, 2))
+            # MaxPool2d(kernel_size=(2, 2))
         )
 
         self.convLayer3 = Sequential(
-            Conv2d(64, 128, kernel_size=(3, 3), padding=(1, 1), stride=(3, 3)),
+            Conv2d(64, 128, kernel_size=(3, 3), padding=(1, 1)),
+            # BatchNorm2d(128),
+            ReLU(),
+            # MaxPool2d(kernel_size=(2, 2))
+        )
+
+        self.convLayer4 = Sequential(
+            Conv2d(128, 256, kernel_size=(3, 3), padding=(1, 1), stride=(3, 3)),
+            # BatchNorm2d(128),
+            ReLU(),
+            # MaxPool2d(kernel_size=(2, 2))
+        )
+
+        self.convLayer5 = Sequential(
+            Conv2d(256, 512, kernel_size=(3, 3), padding=(1, 1), stride=(2, 2)),
+            # BatchNorm2d(128),
+            ReLU(),
+            MaxPool2d(kernel_size=(2, 2))
+        )
+
+        self.convLayer6 = Sequential(
+            Conv2d(512, 256, kernel_size=(3, 3), padding=(1, 1), stride=(2, 2)),
             # BatchNorm2d(128),
             ReLU(),
             MaxPool2d(kernel_size=(2, 2))
         )
 
         self.linearLayers = Sequential(
-            Linear(in_features=2048, out_features=1024),
+            Linear(in_features=1024, out_features=512),
             Dropout(p=0.1),
             ReLU(),
-            Linear(in_features=1024, out_features=2),
+            Linear(in_features=512, out_features=256),
+            Dropout(p=0.1),
+            ReLU(),
+            Linear(in_features=256, out_features=2),
             Dropout(p=0.1),
             Softmax(dim=1)
         )
 
         # Initialize layers' weights
-        for sequential in [self.convLayer1, self.convLayer2, self.convLayer3, self.linearLayers]:
+        for sequential in [self.convLayer1, self.convLayer2, self.convLayer3,
+                           self.convLayer4, self.convLayer5, self.convLayer6, self.linearLayers]:
             for layer in sequential.children():
                 if isinstance(layer, (Linear, Conv2d)):
                     init.xavier_uniform_(layer.weight)
@@ -51,7 +76,10 @@ class MaskDetector(Module):
         out = self.convLayer1(x)
         out = self.convLayer2(out)
         out = self.convLayer3(out)
-        out = out.view(-1, 2048)
+        out = self.convLayer4(out)
+        out = self.convLayer5(out)
+        out = self.convLayer6(out)
+        out = out.view(-1, 1024)
         out = self.linearLayers(out)
         return out
 

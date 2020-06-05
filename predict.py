@@ -1,7 +1,9 @@
-import os
 import argparse
-import numpy as np
-import pandas as pd
+import preprocessing
+import model
+import train
+from torch.utils.data import DataLoader
+import torch
 
 
 # Parsing script arguments
@@ -9,26 +11,13 @@ parser = argparse.ArgumentParser(description='Process input')
 parser.add_argument('input_folder', type=str, help='Input folder path, containing images')
 args = parser.parse_args()
 
-# Reading input folder
-files = os.listdir(args.input_folder)
-
-#####
-# TODO - your prediction code here
-
-# Example (A VERY BAD ONE):
-y_pred = np.random.randint(2, size=len(files))
-prediction_df = pd.DataFrame(zip(files, y_pred), columns=['id', 'label'])
-####
-
-# TODO - How to export prediction results
-prediction_df.to_csv("prediction.csv", index=False, header=False)
-
-
-# ### Example - Calculating F1 Score using sklrean.metrics.f1_score
-# from sklearn.metrics import f1_score
-# y_true = prediction_df['id'].apply(lambda x: int(x[7:8])).values
-# f1 = f1_score(y_true, y_pred, average='binary')		# Averaging as 'binary' - This is how we will evaluate your results.
-
-# print("F1 Score is: {:.2f}".format(f1))
-
-
+model_weights_path = 'models/model_2020-05-30_21:15_742_0.98.pkl'
+net = model.MaskDetector(None)
+net.load_state_dict(torch.load(model_weights_path, map_location=lambda storage, loc: storage))
+net = model.to_gpu(net)
+test_dataset = preprocessing.FaceMaskDataset(args.input_folder, [])
+test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
+prediction_df = train.predict(net, test_loader)
+f1, roc_auc = train.calculate_scores(prediction_df)
+print('F1:', f1, 'ROC_AUC:', roc_auc)
+prediction_df[['id', 'pred']].to_csv("prediction.csv", index=False, header=False)

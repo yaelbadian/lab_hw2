@@ -25,24 +25,14 @@ class MaskDetector(Module):
             MaxPool2d(kernel_size=(2, 2))
         )
 
-        self.convLayer3 = Sequential(
-            Conv2d(64, 128, kernel_size=(3, 3), padding=(1, 1), stride=(3, 3)),
-            # BatchNorm2d(128),
-            ReLU(),
-            MaxPool2d(kernel_size=(2, 2))
-        )
-
         self.linearLayers = Sequential(
-            Linear(in_features=2048, out_features=1024),
-            Dropout(p=0.1),
-            ReLU(),
             Linear(in_features=1024, out_features=2),
             Dropout(p=0.1),
             Softmax(dim=1)
         )
 
         # Initialize layers' weights
-        for sequential in [self.convLayer1, self.convLayer2, self.convLayer3, self.linearLayers]:
+        for sequential in [self.convLayer1, self.convLayer2, self.linearLayers]:
             for layer in sequential.children():
                 if isinstance(layer, (Linear, Conv2d)):
                     init.xavier_uniform_(layer.weight)
@@ -50,8 +40,7 @@ class MaskDetector(Module):
     def forward(self, x):
         out = self.convLayer1(x)
         out = self.convLayer2(out)
-        out = self.convLayer3(out)
-        out = out.view(-1, 2048)
+        out = out.view(-1, 1024)
         out = self.linearLayers(out)
         return out
 
