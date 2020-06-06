@@ -12,7 +12,7 @@ def to_gpu(x):
 
 def plot_gradients(grads, model_name):
     fig = plt.figure(figsize=(5, 4))
-    fig.plot(list(range(len(grads))), grads, label='Gradient Norm', color='turquoise', lw=2)
+    plt.plot(list(range(len(grads))), grads, label='Gradient Norm', color='turquoise', lw=2)
     plt.xlabel('Epoch')
     plt.ylabel('Norm')
     plt.legend()
@@ -82,7 +82,7 @@ def calculate_scores(df):
     return f1, roc_auc
 
 
-def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True, save=True):
+def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True, save=True, checkpoint=False):
     net = to_gpu(net)
     now = datetime.datetime.now()
     criterion = net.configure_weighted_loss()
@@ -90,7 +90,7 @@ def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True
     datetime_str = str(f'{now.date()}_{now.hour}:{now.minute}')
     print(datetime_str)
     train_f1s, train_roc_aucs, train_losses, test_f1s, test_roc_aucs, test_losses, grads = [], [], [], [], [], [], []
-    best_model_wts, best_test_f1, best_epoch = copy.deepcopy(net.state_dict()), 0.0, 0
+    best_model_wts, best_test_f1, best_epoch, best_model_file = copy.deepcopy(net.state_dict()), 0.0, 0, ''
     # training
     for epoch in range(num_epochs):
         # train
@@ -133,14 +133,18 @@ def fit(net, train_loader, test_loader, num_epochs=10, optimizer=None, plot=True
                 best_test_f1 = test_f1
                 model_name = f'model_{datetime_str}_{best_epoch}_{best_test_f1:.3f}'
                 torch.save(net.state_dict(), 'models/' + model_name + '.pkl')
+                best_model_file = 'models/' + model_name + '.pkl'
                 print(f"Current Best Epoch: [{epoch}/{num_epochs}]\t Test F1: {best_test_f1:.3f}")
                 plot_loss_and_error(train_f1s, train_roc_aucs, train_losses, test_f1s, test_roc_aucs, test_losses, model_name)
                 plot_gradients(grads, model_name)
-            if epoch == 15 or epoch == 100:
+            if epoch == 15 or epoch % 100 == 0:
                 model_name = f'model_{datetime_str}_epoch_{epoch}'
                 plot_loss_and_error(train_f1s, train_roc_aucs, train_losses, test_f1s, test_roc_aucs, test_losses,
                                     model_name)
                 plot_gradients(grads, model_name)
+                performances_lift = (best_test_f1 - np.mean(test_f1s[best_epoch:])) / (1 - best_test_f1)
+                if checkpoint and performances_lift > 0.35:
+                    net.load_state_dict(torch.load(best_model_file, map_location=lambda storage, loc: storage))
     # plotting
     if plot:
         plot_loss_and_error(train_f1s, train_roc_aucs, train_losses, test_f1s, test_roc_aucs, test_losses, 'last_plot')

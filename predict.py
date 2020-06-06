@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(description='Process input')
 parser.add_argument('input_folder', type=str, help='Input folder path, containing images')
 args = parser.parse_args()
 
-model_weights_path = 'models/model_2020-05-30_21:15_742_0.98.pkl'
+model_weights_path = 'models/final_model.pkl'
 net = model.MaskDetector(None)
 net.load_state_dict(torch.load(model_weights_path, map_location=lambda storage, loc: storage))
 net = model.to_gpu(net)

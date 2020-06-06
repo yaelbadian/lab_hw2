@@ -12,21 +12,21 @@ class MaskDetector(Module):
         self.train_df = train_df
 
         self.convLayer1 = Sequential(
-            Conv2d(3, 32, kernel_size=(3, 3), padding=(1, 1)),
+            Conv2d(3, 32, kernel_size=(7, 7), padding=(1, 1)),
             # BatchNorm2d(32),
             ReLU(),
-            MaxPool2d(kernel_size=(2, 2))
+            MaxPool2d(kernel_size=(4, 4))
         )
 
         self.convLayer2 = Sequential(
             Conv2d(32, 64, kernel_size=(3, 3), padding=(1, 1)),
             # BatchNorm2d(64),
             ReLU(),
-            MaxPool2d(kernel_size=(2, 2))
+            MaxPool2d(kernel_size=(4, 4))
         )
 
         self.linearLayers = Sequential(
-            Linear(in_features=1024, out_features=2),
+            Linear(in_features=2304, out_features=2),
             Dropout(p=0.1),
             Softmax(dim=1)
         )
@@ -40,7 +40,7 @@ class MaskDetector(Module):
     def forward(self, x):
         out = self.convLayer1(x)
         out = self.convLayer2(out)
-        out = out.view(-1, 1024)
+        out = out.view(-1, 2304)
         out = self.linearLayers(out)
         return out
 

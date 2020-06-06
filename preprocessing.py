@@ -11,15 +11,6 @@ from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
 import matplotlib.pyplot as plt
 
 
-# def show_images(images, labels):
-#     grid = torchvision.utils.make_grid(images)
-#     plt.imshow(grid.numpy().transpose((1, 2, 0)))
-#     plt.axis('off')
-#     plt.title(list(labels.numpy()))
-#     plt.savefig('fig.jpg', format='jpg')
-#     plt.close()
-
-
 class FaceMaskDataset(Dataset):
     def __init__(self, folder_path, transform=None):
         transormations = [ToPILImage('RGB'), Resize((100, 100)), ToTensor()]

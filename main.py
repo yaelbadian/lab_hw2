@@ -1,5 +1,5 @@
 import preprocessing
-import model as model
+import model
 import train
 import argparse
 import os
@@ -16,10 +16,8 @@ def model_pipeline(train_dataset, test_dataset, batch_size, num_epochs, optimize
     if weights is not None:
         net.load_state_dict(torch.load(weights, map_location=lambda storage, loc: storage))
     print(summary(net, torch.zeros((1, 3, 100, 100)), show_input=False, show_hierarchical=True))
-    model_net = model.fit(net, train_loader, test_loader, num_epochs, optimizer, plot=True, save=True)
+    model_net = train.fit(net, train_loader, test_loader, num_epochs, optimizer, plot=True, save=True, checkpoint=True)
     net.visualize_conv2d_features('convLayer1', 'convLayer1')
-    net.visualize_conv2d_features('convLayer2', 'convLayer2')
-    net.visualize_conv2d_features('convLayer3', 'convLayer3')
     return model_net
 
 
@@ -44,18 +42,21 @@ if __name__ == '__main__':
                        RandomHorizontalFlip()]
     train_dataset = preprocessing.FaceMaskDataset(train_path, transformations)
     test_dataset = preprocessing.FaceMaskDataset(test_path, [])
+
+    # dataset statistics
     print(train_dataset.df.shape, train_dataset.df['label'].mean(), test_dataset.df.shape, test_dataset.df['label'].mean())
+
     # train the model
-    trained_weights = 'models/model_2020-05-31_22:59_183_0.977.pkl'
+    trained_weights = 'models/final_model.pkl'
     # trained_weights = None
-    model_net = model_pipeline(train_dataset, test_dataset, 256, 15, 'Adam', trained_weights)
-    test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
+    batch_size = 256
+    epochs = 2500
+    model_net = model_pipeline(train_dataset, test_dataset, batch_size, epochs, 'Adam', trained_weights)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
     predictions = train.predict(model_net, test_loader)
     f1, roc_auc = train.calculate_scores(predictions)
     fn = 1 - predictions[predictions['true'] == 0]['pred'].mean()
     tp = predictions[predictions['true'] == 1]['pred'].mean()
     print('F1 score:', f1, 'ROC AUC score:', roc_auc, 'FN:', fn, 'TP:', tp)
     mistakes = predictions[predictions['pred'] != predictions['true']]
-    preprocessing.show_images(test_dataset, mistakes.sample(8)['id'].tolist(), 'mistakes1')
-    preprocessing.show_images(test_dataset, mistakes.sample(8)['id'].tolist(), 'mistakes2')
-    preprocessing.show_images(test_dataset, mistakes.sample(8)['id'].tolist(), 'mistakes3')
+    preprocessing.show_images(test_dataset, mistakes.sample(16)['id'].tolist(), 'mistakes1')
